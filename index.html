@@ -1,0 +1,738 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Info Sihat App Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one phone-sized frame centred on a quiet ground; mid-fidelity greys + one clinical teal accent */
+:root{
+  --ground:#e7ecea; --phone:#ffffff; --ink:#1d2624; --muted:#5d6a67; --line:#d5dddb;
+  --fill:#f1f5f4; --fill2:#e3eae8; --accent:#0d7a6b; --accent-ink:#ffffff; --accent-soft:#d9efeb;
+  --warn:#a55a00; --warn-soft:#fbebd6; --ok:#2a7a33;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --fs:15px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ground:#0f1413; --phone:#171d1c; --ink:#e6eceb; --muted:#9aa8a5; --line:#2c3634;
+  --fill:#1f2725; --fill2:#283230; --accent:#3fb8a4; --accent-ink:#06201c; --accent-soft:#16332e;
+  --warn:#f0b062; --warn-soft:#3a2a14; --ok:#7bd085; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#0f1413; --phone:#171d1c; --ink:#e6eceb; --muted:#9aa8a5; --line:#2c3634;
+  --fill:#1f2725; --fill2:#283230; --accent:#3fb8a4; --accent-ink:#06201c; --accent-soft:#16332e;
+  --warn:#f0b062; --warn-soft:#3a2a14; --ok:#7bd085; color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:var(--fs);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:16px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:10px}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.meta button{background:none;border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer;font:inherit;color:var(--muted)}
+.phone{width:100%;max-width:390px;height:min(800px,calc(100% - 30px));min-height:560px;background:var(--phone);
+  border:1px solid var(--line);border-radius:28px;overflow:hidden;display:flex;flex-direction:column;position:relative;
+  box-shadow:0 20px 50px -25px rgba(0,0,0,.35)}
+@media (max-width:440px){body{padding:0}.meta{display:none}.phone{max-width:none;height:100%;border-radius:0;border:0;min-height:0}}
+.status{display:flex;justify-content:space-between;padding:10px 20px 4px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+.top{display:flex;align-items:center;gap:10px;padding:8px 16px 10px;border-bottom:1px solid var(--line);min-height:52px}
+.top h1{font-size:18px;margin:0;flex:1;text-wrap:balance}
+.iconbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--phone);display:grid;place-items:center;cursor:pointer;flex:none;position:relative}
+.iconbtn svg{width:18px;height:18px}
+.dot{position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--warn)}
+.screen{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.screen[hidden]{display:none!important}
+.screen>*{flex-shrink:0}
+.tabbar{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
+.tabbar[hidden]{display:none}
+.tabbar button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);padding:6px 0;cursor:pointer}
+.tabbar button svg{width:20px;height:20px}
+.tabbar button.on{color:var(--accent);font-weight:700}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.search{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--fill);width:100%}
+.search input{border:0;background:none;outline:none;flex:1;font:inherit;color:var(--ink);min-width:0}
+.search svg{width:18px;height:18px;color:var(--muted);flex:none}
+.search .clear{border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 2px}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline}
+.link{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;padding:0;font-size:13px;text-align:left}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--fill);border:1px solid var(--line);border-radius:12px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;text-align:center;cursor:pointer}
+.tile small{color:var(--muted);font-size:11px}
+.ph{width:36px;height:36px;border-radius:10px;background:var(--fill2);display:grid;place-items:center;color:var(--ink);flex:none}
+.ph svg{width:20px;height:20px}
+.card{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--phone)}
+.card.hl{background:var(--accent-soft);border-color:transparent}
+.card.warn{background:var(--warn-soft);border-color:transparent}
+.card h3{margin:0;font-size:16px}
+.card p{margin:0;color:var(--muted);line-height:1.45}
+.issues{display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scroll-snap-type:x mandatory;scroll-padding:0 16px}
+.issue{flex:0 0 74%;scroll-snap-align:start;text-align:left;cursor:pointer;font:inherit}
+.row{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;text-align:left;width:100%}
+.row:last-child{border-bottom:0}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block}
+.row .t span{color:var(--muted);font-size:13px}
+.chev{color:var(--muted)}
+.img{background:repeating-linear-gradient(45deg,var(--fill) 0 10px,var(--fill2) 10px 20px);border-radius:12px;display:grid;place-items:center;color:var(--muted);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;text-align:center}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;background:var(--phone);cursor:pointer}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:13px 16px;font-weight:700;cursor:pointer;width:100%}
+.btn.ghost{background:var(--phone);color:var(--ink);border:1.5px solid var(--line)}
+.btn.saved{background:var(--accent-soft);color:var(--accent);border:1.5px solid var(--accent)}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.badge{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:4px 8px;border-radius:6px;background:var(--fill2);width:fit-content;flex:none}
+.badge.ok{color:var(--ok)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:13px}
+.field input,.field select,.field textarea{border:1.5px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:var(--phone);color:var(--ink);width:100%}
+.field textarea{min-height:90px;resize:vertical}
+.result{text-align:center;padding:16px;border-radius:14px;background:var(--fill)}
+.result .big{font-size:40px;font-weight:700;font-variant-numeric:tabular-nums}
+.scale{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:10px;color:var(--muted);text-align:center}
+.scale div{padding-top:6px;border-top:5px solid var(--fill2)}
+.scale div.on{border-top-color:var(--accent);color:var(--ink);font-weight:700}
+.acc{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.acc button{width:100%;text-align:left;background:var(--phone);border:0;padding:13px 14px;font-weight:700;display:flex;justify-content:space-between;gap:8px;cursor:pointer}
+.acc .body{padding:0 14px 14px;color:var(--muted);line-height:1.5}
+.map{height:180px;position:relative;border-radius:14px;overflow:hidden;background:var(--fill);border:1px solid var(--line)}
+.map .road{position:absolute;background:var(--fill2)}
+.pin{position:absolute;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--accent);border:2px solid var(--phone);cursor:pointer}
+.pin.me{background:#3b6fd6;border-radius:50%;width:16px;height:16px;transform:none}
+.toast{position:absolute;left:16px;right:16px;bottom:84px;background:var(--ink);color:var(--phone);padding:12px 14px;border-radius:12px;font-size:14px;z-index:5}
+.toggle{width:44px;height:26px;border-radius:999px;background:var(--fill2);border:0;position:relative;cursor:pointer;flex:none}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--phone);transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.toggle.on{background:var(--accent)}
+.toggle.on::after{left:21px}
+.steps{display:flex;gap:6px}
+.steps span{flex:1;height:5px;border-radius:3px;background:var(--fill2)}
+.steps span.on{background:var(--accent)}
+.lang{display:flex;flex-direction:column;gap:10px}
+.lang button{display:flex;justify-content:space-between;align-items:center;padding:16px;border:1.5px solid var(--line);border-radius:12px;background:var(--phone);cursor:pointer;font-weight:700}
+.lang button.on{border-color:var(--accent);background:var(--accent-soft)}
+.article p{line-height:1.6;margin:0}
+.hint{font-size:12px;color:var(--muted);line-height:1.4;margin:0}
+.empty{text-align:center;padding:20px 8px;color:var(--muted);display:flex;flex-direction:column;gap:10px;align-items:center}
+.empty b{color:var(--ink)}
+.viewer{height:300px;overflow:auto;border-radius:12px;border:1px solid var(--line);background:var(--fill)}
+.viewer .img{height:100%;width:100%;border-radius:0;transition:width .15s,height .15s}
+.zoom{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.zoom button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--phone);cursor:pointer;font-weight:700}
+.player{display:flex;align-items:center;gap:12px}
+.player .bar{flex:1;height:6px;border-radius:3px;background:var(--fill2);overflow:hidden}
+.player .bar span{display:block;height:100%;width:0;background:var(--accent)}
+.src{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="meta">
+  <span>Info Sihat app · mid-fidelity prototype · v2</span>
+  <button type="button" id="restart">Restart from onboarding</button>
+</div>
+
+<div class="phone" id="phone">
+  <div class="status"><span>9:41</span><span>4G ▮▮▮</span></div>
+  <div class="top" id="top">
+    <button class="iconbtn" id="back" type="button" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h1 id="title">Info Sihat</h1>
+    <button class="iconbtn" id="bell" type="button" aria-label="Health alerts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot"></span></button>
+  </div>
+
+  <!-- ONBOARDING -->
+  <section class="screen" data-screen="onboard" data-title="Welcome" data-notab>
+    <div class="img" style="height:150px">App illustration</div>
+    <div class="sec">
+      <h2 style="margin:0;font-size:24px">Info Sihat, now in your pocket</h2>
+      <p style="margin:0;color:var(--muted);line-height:1.5">Health education from the Health Education Division, Ministry of Health Malaysia: current health issues, infographics, videos and nearby services, in your language.</p>
+    </div>
+    <p class="label">Choose your language</p>
+    <div class="lang" id="langs">
+      <button type="button" data-lang="BM">Bahasa Melayu <span>○</span></button>
+      <button type="button" data-lang="EN" class="on">English <span>●</span></button>
+      <button type="button" data-lang="中文">中文 <span>○</span></button>
+      <button type="button" data-lang="தமிழ்">தமிழ் <span>○</span></button>
+    </div>
+    <p class="hint">Prototype note: content is shown in English for testing.</p>
+    <button class="btn" type="button" data-go="home">Get started</button>
+  </section>
+
+  <!-- HOME -->
+  <section class="screen" data-screen="home" data-title="Info Sihat" data-tab="home" data-root>
+    <div>
+      <p class="label">Good afternoon</p>
+      <h2 style="margin:4px 0 0;font-size:22px">What do you want to know today?</h2>
+    </div>
+    <button class="search" type="button" data-go="search" style="cursor:pointer;text-align:left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <span style="color:var(--muted)">Search topics, e.g. dengue, sleep, sugar</span>
+    </button>
+    <div class="sec">
+      <div class="sec-h"><p class="label">Current issues · Isu Semasa</p><button class="link" type="button" data-go="topic" data-topic="Current issues">See all</button></div>
+      <div class="issues">
+        <button class="card warn issue" type="button" data-go="alert-detail"><span class="badge warn">Alert · Negeri Sembilan</span><h3>Dengue cases rising</h3><p>Clear standing water weekly. Tap for warning signs.</p></button>
+        <button class="card issue" type="button" data-go="article" data-id="haze"><span class="badge">Haze</span><h3>Haze: protect your health</h3><p>What the air pollution index means for you.</p></button>
+        <button class="card issue" type="button" data-go="media" data-id="flu"><span class="badge">Influenza</span><h3>Flu: when to see a doctor</h3><p>1 min video</p></button>
+        <button class="card issue" type="button" data-go="article" data-id="sugar"><span class="badge">Kurangkan gula</span><h3>Cutting down sugar</h3><p>Simple swaps for sweet drinks.</p></button>
+      </div>
+    </div>
+    <div class="sec">
+      <p class="label">Quick actions</p>
+      <div class="grid4">
+        <button class="tile" type="button" data-go="clinics"><span class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>Find service</button>
+        <button class="tile" type="button" data-go="topic" data-topic="fmt:Infographic"><span class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="8" r="1.5"/></svg></span>Infographics</button>
+        <button class="tile" type="button" data-go="tools"><span class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9"/></svg></span>Health check</button>
+        <button class="tile" type="button" data-go="ask"><span class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 01-11.6 7.1L4 21l1.9-5.4A8 8 0 1121 12z"/></svg></span>Ask expert</button>
+      </div>
+    </div>
+    <div class="sec">
+      <p class="label">Popular this week</p>
+      <div id="popular"></div>
+    </div>
+  </section>
+
+  <!-- SEARCH -->
+  <section class="screen" data-screen="search" data-title="Search" data-tab="home">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="q" type="text" enterkeyhint="search" placeholder="e.g. dengue, sleep, sugar" aria-label="Search" autocomplete="off">
+      <button class="clear" id="qclear" type="button" aria-label="Clear search" hidden>×</button>
+    </div>
+    <div class="chips" id="filters">
+      <button class="chip on" type="button" data-f="all">All</button><button class="chip" type="button" data-f="read">Articles</button><button class="chip" type="button" data-f="media">Infographics &amp; videos</button><button class="chip" type="button" data-f="svc">Services &amp; tools</button>
+    </div>
+    <div id="sresults" class="sec"></div>
+  </section>
+
+  <!-- EXPLORE -->
+  <section class="screen" data-screen="explore" data-title="Explore" data-tab="explore" data-root>
+    <button class="search" type="button" data-go="search" style="cursor:pointer;text-align:left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <span style="color:var(--muted)">Search topics</span>
+    </button>
+    <div class="sec">
+      <p class="label">Browse by topic</p>
+      <p class="hint">Pick a health subject to see everything about it.</p>
+      <div id="topiclist"></div>
+    </div>
+    <div class="sec">
+      <p class="label">Browse by format</p>
+      <p class="hint">Pick how you like to learn: look, watch or listen.</p>
+      <div class="grid2">
+        <button class="tile" type="button" data-go="topic" data-topic="fmt:Infographic"><span class="img" style="width:100%;height:54px">infographic</span>Infographics &amp; posters</button>
+        <button class="tile" type="button" data-go="topic" data-topic="fmt:Video"><span class="img" style="width:100%;height:54px">video</span>Videos</button>
+        <button class="tile" type="button" data-go="topic" data-topic="fmt:Audio"><span class="img" style="width:100%;height:54px">audio</span>Audio messages</button>
+        <button class="tile" type="button" data-go="topic" data-topic="fmt:e-Magazine"><span class="img" style="width:100%;height:54px">e-majalah</span>e-Magazine</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOPIC LIST -->
+  <section class="screen" data-screen="topic" data-title="Topic" data-tab="explore">
+    <p class="hint" id="topicdesc"></p>
+    <div id="topicitems"></div>
+  </section>
+
+  <!-- ARTICLE -->
+  <section class="screen article" data-screen="article" data-title="Article" data-tab="explore">
+    <button class="img" type="button" id="a-img" style="height:140px;border:0;cursor:pointer;font:inherit">Infographic · tap to view full size</button>
+    <div class="sec">
+      <span class="badge ok" id="a-badge"></span>
+      <h2 style="margin:0;font-size:22px" id="a-title"></h2>
+      <div class="btnrow">
+        <button class="btn ghost" type="button" id="save">☆ Save</button>
+        <button class="btn ghost" type="button" id="share">Share</button>
+      </div>
+      <div class="chips">
+        <button class="chip" type="button" id="listen">▶ Listen</button>
+        <button class="chip" type="button" id="textsize">Aa Larger text</button>
+      </div>
+    </div>
+    <div class="card hl">
+      <p class="label" style="color:var(--accent)">Key points</p>
+      <ul style="margin:0;padding-left:18px;line-height:1.6" id="a-points"></ul>
+      <button class="link" type="button" id="a-cta"></button>
+    </div>
+    <div id="a-secs" class="sec"></div>
+    <div class="src">
+      <b style="color:var(--ink)">Source</b>
+      <span id="a-src"></span>
+      <button class="link" type="button" id="a-srclink">View original on infosihat.moh.gov.my ›</button>
+    </div>
+    <div class="sec">
+      <p class="label">Related</p>
+      <div id="a-related"></div>
+    </div>
+  </section>
+
+  <!-- MEDIA (infographic / video / audio / e-magazine) -->
+  <section class="screen" data-screen="media" data-title="Infographic" data-tab="explore">
+    <span class="badge" id="m-type"></span>
+    <h2 style="margin:0;font-size:20px" id="m-title"></h2>
+    <div id="m-visual"></div>
+    <div class="card hl">
+      <p class="label" style="color:var(--accent)">Text version</p>
+      <ul style="margin:0;padding-left:18px;line-height:1.6" id="m-points"></ul>
+    </div>
+    <div class="btnrow">
+      <button class="btn ghost" type="button" id="m-dl">Download PDF</button>
+      <button class="btn ghost" type="button" id="m-share">Share</button>
+    </div>
+    <p class="hint">Source: Bahagian Pendidikan Kesihatan, KKM · Info Sihat media library.</p>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="screen" data-screen="tools" data-title="Health check" data-tab="home">
+    <p style="margin:0;color:var(--muted)">Quick checks that take under 5 minutes. Results are for guidance only.</p>
+    <div>
+      <button class="row" type="button" data-go="bmi"><span class="ph">⚖</span><div class="t"><b>BMI calculator</b><span>1 min</span></div><span class="chev">›</span></button>
+      <button class="row" type="button" data-go="risk"><span class="ph">♥</span><div class="t"><b>Health risk assessment</b><span>KKM online assessment · 8 questions · 3 min</span></div><span class="chev">›</span></button>
+    </div>
+  </section>
+
+  <!-- BMI -->
+  <section class="screen" data-screen="bmi" data-title="BMI calculator" data-tab="home">
+    <form id="bmiform" class="sec">
+      <div class="grid2">
+        <div class="field"><label for="h">Height (cm)</label><input id="h" type="number" inputmode="decimal" value="165" min="80" max="250"></div>
+        <div class="field"><label for="w">Weight (kg)</label><input id="w" type="number" inputmode="decimal" value="72" min="20" max="300"></div>
+      </div>
+      <button class="btn" type="submit">Calculate</button>
+    </form>
+    <div class="result">
+      <p class="label">Your BMI</p>
+      <div class="big" id="bmival">26.4</div>
+      <b id="bmicat">Overweight</b>
+      <div class="scale" style="margin-top:12px" id="bmiscale">
+        <div>&lt;18.5<br>Under</div><div>18.5–24.9<br>Normal</div><div>25–29.9<br>Over</div><div>≥30<br>Obese</div>
+      </div>
+    </div>
+    <div class="card"><h3>What next?</h3><p id="bmiadvice"></p>
+      <div class="btnrow"><button class="btn ghost" type="button" data-go="article" data-id="weight">Read guide</button><button class="btn" type="button" data-go="clinics">Find clinic</button></div>
+    </div>
+  </section>
+
+  <!-- RISK -->
+  <section class="screen" data-screen="risk" data-title="Health risk assessment" data-tab="home">
+    <div class="steps"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div>
+    <p class="label">Question 3 of 8</p>
+    <h2 style="margin:0;font-size:20px">Do you smoke or use vape?</h2>
+    <div class="lang" id="riskopts">
+      <button type="button">No, never <span>○</span></button>
+      <button type="button">I stopped more than 1 year ago <span>○</span></button>
+      <button type="button">Yes, sometimes <span>○</span></button>
+      <button type="button">Yes, every day <span>○</span></button>
+    </div>
+    <div class="btnrow"><button class="btn ghost" type="button" data-back>Back</button><button class="btn" type="button" id="risknext">Next</button></div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="screen" data-screen="clinics" data-title="Find a service" data-tab="clinics" data-root>
+    <div class="chips" id="cfilters">
+      <button class="chip on" type="button" data-c="kk">Klinik Kesihatan</button><button class="chip" type="button" data-c="quit">Quit smoking</button><button class="chip" type="button" data-c="well">Wellness Hub</button><button class="chip" type="button" data-c="open">Open now</button>
+    </div>
+    <div class="map" aria-label="Map of nearby services">
+      <div class="road" style="left:0;right:0;top:45%;height:14px"></div>
+      <div class="road" style="top:0;bottom:0;left:38%;width:12px"></div>
+      <div class="road" style="top:0;bottom:0;left:75%;width:10px"></div>
+      <span class="pin me" style="left:44%;top:52%"></span>
+      <div id="pins"></div>
+    </div>
+    <p class="label" id="ccount"></p>
+    <div id="clist"></div>
+    <p class="hint">Locations and opening hours are sample data for the prototype.</p>
+  </section>
+
+  <!-- SERVICE DETAIL -->
+  <section class="screen" data-screen="clinic" data-title="Service details" data-tab="clinics">
+    <div class="img" style="height:120px">Photo</div>
+    <div class="sec">
+      <h2 style="margin:0;font-size:20px" id="c-name"></h2>
+      <span class="badge ok" id="c-status"></span>
+      <p style="margin:0;color:var(--muted)" id="c-addr"></p>
+    </div>
+    <div class="btnrow"><button class="btn" type="button" id="directions">Directions</button><button class="btn ghost" type="button" id="call">Call</button></div>
+    <div class="card"><p class="label">Services</p><div class="chips" id="c-svc"></div></div>
+    <div class="card"><p class="label">Hours</p><p id="c-hours"></p></div>
+  </section>
+
+  <!-- ASK -->
+  <section class="screen" data-screen="ask" data-title="Ask an expert" data-tab="home">
+    <span class="badge">New service in the app</span>
+    <div class="card hl"><p style="color:var(--ink)">A KKM health education officer replies within 3 working days. You will get a notification when your answer is ready.</p></div>
+    <p class="label">Similar questions already answered</p>
+    <div>
+      <button class="row" type="button" data-go="article" data-id="weight"><div class="t"><b>Is it safe to fast while losing weight?</b><span>Answered by a dietitian</span></div><span class="chev">›</span></button>
+    </div>
+    <form id="askform" class="sec">
+      <div class="field"><label for="cat">Topic</label><select id="cat"><option>Nutrition</option><option>Diseases</option><option>Mental health</option><option>Smoking &amp; vaping</option><option>Healthy lifestyle</option></select></div>
+      <div class="field"><label for="msg">Your question</label><textarea id="msg" placeholder="Type your question here"></textarea></div>
+      <p class="hint">Do not include your IC number. This service does not replace a doctor's visit.</p>
+      <button class="btn" type="submit">Send question</button>
+    </form>
+    <p class="label">My questions</p>
+    <div id="myq">
+      <div class="row" style="cursor:default"><div class="t"><b>Can I take panadol with flu medicine?</b><span>Sent 12 Oct</span></div><span class="badge ok">Answered</span></div>
+    </div>
+  </section>
+
+  <!-- ALERTS -->
+  <section class="screen" data-screen="alerts" data-title="Notifications" data-tab="home">
+    <div>
+      <button class="row" type="button" data-go="alert-detail"><span class="badge warn">Alert</span><div class="t"><b>Dengue cases rising in Negeri Sembilan</b><span>Today</span></div></button>
+      <button class="row" type="button" data-go="ask"><span class="badge ok">Reply</span><div class="t"><b>Your question has been answered</b><span>Yesterday</span></div></button>
+      <button class="row" type="button" data-go="media" data-id="plate"><span class="badge">Tip</span><div class="t"><b>Try the Malaysian Healthy Plate today</b><span>2 days ago</span></div></button>
+    </div>
+  </section>
+
+  <!-- ALERT DETAIL -->
+  <section class="screen article" data-screen="alert-detail" data-title="Health alert" data-tab="home">
+    <span class="badge warn">Health alert · Negeri Sembilan</span>
+    <h2 style="margin:0;font-size:22px">Dengue: know the warning signs</h2>
+    <button class="img" type="button" data-go="media" data-id="dengue" style="height:130px;border:0;cursor:pointer;font:inherit">Infographic · tap to view full size</button>
+    <div class="card warn"><p class="label" style="color:var(--warn)">Go to hospital immediately if you have</p>
+      <ul style="margin:0;padding-left:18px;line-height:1.6;color:var(--ink)"><li>Severe stomach pain or vomiting</li><li>Bleeding gums or nose</li><li>Feeling very tired or restless</li></ul></div>
+    <p>Fever with headache, pain behind the eyes and body aches can be dengue. Drink plenty of fluids and see a doctor within 1–2 days.</p>
+    <button class="btn" type="button" data-go="clinics">Find nearest clinic</button>
+  </section>
+
+  <!-- SAVED -->
+  <section class="screen" data-screen="saved" data-title="Saved" data-tab="saved" data-root>
+    <p style="margin:0;color:var(--muted)">Articles and infographics you saved to read later.</p>
+    <div id="savedlist"></div>
+  </section>
+
+  <!-- PROFILE -->
+  <section class="screen" data-screen="profile" data-title="Profile & settings" data-tab="profile" data-root>
+    <div class="card" style="flex-direction:row;align-items:center"><div class="ph" style="width:52px;height:52px;border-radius:50%">AL</div><div><b>Aina Lim</b><p>Guest account</p></div></div>
+    <p class="label">Preferences</p>
+    <div>
+      <div class="row" style="cursor:default"><div class="t"><b>Language</b><span id="langlabel">English</span></div><button class="link" type="button" data-go="onboard">Change</button></div>
+      <div class="row" style="cursor:default"><div class="t"><b>Larger text</b><span>Easier reading for seniors</span></div><button class="toggle" type="button" id="bigtext" aria-label="Larger text"></button></div>
+      <div class="row" style="cursor:default"><div class="t"><b>Health alerts in my state</b><span>Negeri Sembilan</span></div><button class="toggle on" type="button" aria-label="Health alerts"></button></div>
+      <div class="row" style="cursor:default"><div class="t"><b>Daily health tip</b><span>8:00 am</span></div><button class="toggle" type="button" aria-label="Daily tip"></button></div>
+    </div>
+    <p class="label">About</p>
+    <div>
+      <button class="row" type="button" id="disclaimer"><div class="t"><b>Disclaimer</b><span>Information only, not a diagnosis</span></div><span class="chev">›</span></button>
+      <button class="row" type="button" id="feedback"><div class="t"><b>Send feedback</b></div><span class="chev">›</span></button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <nav class="tabbar" id="tabbar">
+    <button type="button" data-tab="home" data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Home</button>
+    <button type="button" data-tab="explore" data-go="explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Explore</button>
+    <button type="button" data-tab="clinics" data-go="clinics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 1114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Services</button>
+    <button type="button" data-tab="saved" data-go="saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Saved</button>
+    <button type="button" data-tab="profile" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>Profile</button>
+  </nav>
+</div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  /* ---------- Content (sample data modelled on Info Sihat's topics and formats) ---------- */
+  const TOPICS={
+    'Current issues':'Isu Semasa: health issues KKM is highlighting right now.',
+    'Nutrition':'Healthy eating, sugar, salt and body weight.',
+    'Healthy lifestyle':'Sleep, physical activity and everyday habits.',
+    'Diseases':'Infectious and chronic diseases: signs, prevention and when to get help.',
+    'Mental health':'Stress, mood and where to get support.',
+    'Smoking & vaping':'Quitting smoking, vaping risks and quit clinics.'
+  };
+  const ITEMS=[
+    {id:'dengue',title:'Dengue: warning signs',type:'Infographic',topics:['Current issues','Diseases'],kw:'dengue denggi aedes mosquito nyamuk fever demam',go:'alert-detail',meta:'Infographic · Current issue',
+      quick:'Fever with severe stomach pain, vomiting or bleeding gums can be severe dengue. Go to hospital immediately.'},
+    {id:'haze',title:'Haze: protect your health',type:'Article',topics:['Current issues'],kw:'haze jerebu air pollution api ipu mask asthma',go:'article',meta:'Article · 2 min read'},
+    {id:'flu',title:'Influenza: when to see a doctor',type:'Video',topics:['Current issues','Diseases'],kw:'influenza flu selesema fever cough vaccine',go:'media',meta:'Video · 1 min'},
+    {id:'sugar',title:'Cutting down sugar',type:'Article',topics:['Current issues','Nutrition'],kw:'sugar gula kurangkan gula sweet drinks diabetes teh tarik',go:'article',meta:'Article · 3 min read',
+      quick:'Swap sweet drinks for plain water and ask for "kurang manis". Most adults should keep added sugar under about 10 teaspoons a day.'},
+    {id:'weight',title:'Weight management',type:'Article',topics:['Nutrition'],kw:'weight lose weight berat badan bmi diet obesity obese overweight',go:'article',meta:'Article · 3 min read',
+      quick:'Aim for a slow loss of 0.5–1 kg a week by eating smaller portions, following the healthy plate and being active at least 150 minutes a week.'},
+    {id:'plate',title:'Malaysian Healthy Plate (suku-suku separuh)',type:'Infographic',topics:['Nutrition'],kw:'healthy plate suku suku separuh pinggan sihat diet food makan nutrition',go:'media',meta:'Infographic'},
+    {id:'sleep',title:'Healthy sleep habits',type:'Article',topics:['Healthy lifestyle','Mental health'],kw:'sleep tidur insomnia rest healthy sleep tired',go:'article',meta:'Article · 2 min read',
+      quick:'Most adults need 7–9 hours of sleep. Keep the same bedtime, and stop using screens 30–60 minutes before sleep.'},
+    {id:'active',title:'Get active: 150 minutes a week',type:'Poster',topics:['Healthy lifestyle'],kw:'exercise senaman physical activity aktif walk active fitness',go:'media',meta:'Poster'},
+    {id:'stress',title:'Managing stress',type:'Audio',topics:['Mental health'],kw:'stress tekanan mental health anxiety calm audio',go:'media',meta:'Audio message · 2 min'},
+    {id:'vape',title:'Vape and your lungs',type:'Infographic',topics:['Smoking & vaping'],kw:'vape vaping e-cigarette rokok elektronik lungs smoking',go:'media',meta:'Infographic'},
+    {id:'quit',title:'Quit smoking clinics near you',type:'Service',topics:['Smoking & vaping'],kw:'quit smoking berhenti merokok rokok clinic mquit cigarette',go:'clinics',c:'quit',meta:'Service · 2 nearby'},
+    {id:'kk',title:'Klinik Kesihatan near you',type:'Service',topics:['Diseases'],kw:'clinic klinik kesihatan hospital doctor near vaccination',go:'clinics',c:'kk',meta:'Service · 3 nearby'},
+    {id:'bmi',title:'BMI calculator',type:'Tool',topics:['Nutrition'],kw:'bmi calculator weight height obesity',go:'bmi',meta:'Health tool · 1 min'},
+    {id:'hra',title:'Health risk assessment',type:'Tool',topics:['Diseases'],kw:'risk assessment heart diabetes check saringan health check',go:'risk',meta:'Health tool · 3 min'},
+    {id:'emag',title:'Info Sihat e-Magazine 2026',type:'e-Magazine',topics:['Healthy lifestyle'],kw:'majalah e-majalah magazine emagazine',go:'media',meta:'e-Magazine · PDF'}
+  ];
+  const byId=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+  const ARTICLES={
+    weight:{updated:'Mar 2026',img:'Infographic: healthy weight',
+      points:['Check your BMI first. A healthy range for adults is 18.5–24.9.','Lose weight slowly, about 0.5–1 kg each week.','Use the healthy plate: ¼ protein, ¼ carbs, ½ vegetables and fruit.','Be active at least 150 minutes a week.'],
+      cta:['Check my BMI now ›','bmi'],
+      secs:[['How do I know my weight status?','BMI = weight (kg) ÷ height (m)². Below 18.5 is underweight, 18.5–24.9 is normal, 25.0–29.9 is overweight and 30 or above is obese. A waist above 90 cm for men or 80 cm for women also raises health risk.'],
+            ['Tips to lose weight safely','Eat regular meals, choose plain water over sweet drinks, and walk briskly 30 minutes, 5 days a week.'],
+            ['When should I see a doctor?','If your BMI is 30 or above, or you have diabetes, high blood pressure or joint pain.']],
+      related:['plate','bmi','sugar']},
+    sleep:{updated:'Feb 2026',img:'Infographic: sleep tips',
+      points:['Most adults need 7–9 hours of sleep a night.','Go to bed and wake up at the same time every day.','Stop using screens 30–60 minutes before bed.','Avoid coffee and heavy meals late in the evening.'],
+      cta:['Listen to: Managing stress ›','media:stress'],
+      secs:[['Why is sleep important?','Good sleep helps your memory, mood and immune system, and lowers the risk of heart disease and obesity.'],
+            ['I cannot fall asleep. What can I try?','Keep the room dark and cool, get morning sunlight, and get out of bed to do something calm if you are still awake after 20 minutes.'],
+            ['When should I see a doctor?','If poor sleep lasts more than a month, or you snore loudly and feel very sleepy in the day.']],
+      related:['stress','active','weight']},
+    sugar:{updated:'Jan 2026',img:'Infographic: hidden sugar in drinks',
+      points:['Most adults should keep added sugar under about 10 teaspoons a day.','One cup of sweet teh tarik can have 4–5 teaspoons.','Ask for "kurang manis" or "kosong".','Read food labels: sugar has many names, like glucose and syrup.'],
+      cta:['View infographic: Healthy Plate ›','media:plate'],
+      secs:[['Why cut down sugar?','Too much sugar raises the risk of obesity, type 2 diabetes and tooth decay.'],
+            ['Easy swaps','Plain water instead of soft drinks, fresh fruit instead of kuih, and unsweetened milk.']],
+      related:['plate','weight','bmi']},
+    haze:{updated:'Sep 2026',img:'Infographic: air pollution index levels',
+      points:['Check the air pollution index (IPU) before going out.','Above 100 is unhealthy: reduce outdoor activity.','Children, seniors and people with asthma are most at risk.','Drink more water and keep windows closed.'],
+      cta:['Find a nearby clinic ›','clinics'],
+      secs:[['What do the index levels mean?','0–50 good, 51–100 moderate, 101–200 unhealthy, 201–300 very unhealthy, above 300 hazardous.'],
+            ['When should I see a doctor?','If you have breathing difficulty, chest pain or an asthma attack that does not improve with your inhaler.']],
+      related:['flu','dengue','kk']}
+  };
+  const MEDIA={
+    plate:['Fill ¼ of the plate with protein, ¼ with rice or other carbs, and ½ with vegetables and fruit.','Drink plain water with meals.','Use the plate at every main meal.'],
+    flu:['Rest, drink fluids and stay home to avoid spreading it.','See a doctor if fever lasts over 3 days or you have trouble breathing.','Seniors and people with chronic disease should get the yearly flu vaccine.'],
+    dengue:['Clear standing water around your home every week.','Use mosquito repellent during the day.','Fever with severe stomach pain, vomiting or bleeding: go to hospital now.'],
+    active:['Adults: at least 150 minutes of moderate activity a week.','Break it into 30 minutes, 5 days a week.','Brisk walking, cycling and housework all count.'],
+    stress:['Notice early signs: poor sleep, irritability, headaches.','Try slow breathing: in for 4 seconds, out for 6.','Talk to someone you trust, or a health professional if it does not improve.'],
+    vape:['Vape aerosol contains nicotine and harmful chemicals.','Nicotine is addictive and harms brain development in teenagers.','Quit smoking clinics also help people stop vaping.'],
+    emag:['Feature: living well with diabetes.','Healthy recipes for Hari Raya and Deepavali.','Q&A with a Klinik Kesihatan doctor.']
+  };
+  const SERVICES=[
+    {id:'s1',c:['kk','open'],name:'Klinik Kesihatan Seremban',dist:'1.2 km',status:'Open until 5:00 pm',open:true,addr:'Seremban, Negeri Sembilan',svc:['Outpatient','Maternal & child','Vaccination','Dental','Dietitian'],hours:'Mon–Fri 8:00 am – 5:00 pm · Sat, Sun & public holidays: closed',pos:[24,22]},
+    {id:'s2',c:['kk','open','quit'],name:'Klinik Kesihatan Rasah',dist:'2.8 km',status:'Open until 5:00 pm',open:true,addr:'Rasah, Seremban, Negeri Sembilan',svc:['Outpatient','Quit smoking clinic','Vaccination'],hours:'Mon–Fri 8:00 am – 5:00 pm',pos:[62,66]},
+    {id:'s3',c:['kk','open'],name:"Hospital Tuanku Ja'afar",dist:'4.1 km',status:'Emergency 24 hours',open:true,addr:'Seremban, Negeri Sembilan',svc:['Emergency','Specialist clinics'],hours:'Emergency department open 24 hours',pos:[80,18]},
+    {id:'s4',c:['quit'],name:'Quit smoking clinic, Klinik Kesihatan Seremban 2',dist:'3.5 km',status:'Closed · opens Mon 8:00 am',open:false,addr:'Seremban 2, Negeri Sembilan',svc:['Quit smoking counselling','Nicotine replacement'],hours:'Tue & Thu 2:00 pm – 4:30 pm',pos:[14,70]},
+    {id:'s5',c:['well','open'],name:'Wellness Hub Seremban',dist:'2.1 km',status:'Open until 9:00 pm',open:true,addr:'Seremban, Negeri Sembilan',svc:['Health screening','Exercise programme','Nutrition talks'],hours:'Mon–Sat 9:00 am – 9:00 pm',pos:[56,28]}
+  ];
+  const svcById=Object.fromEntries(SERVICES.map(s=>[s.id,s]));
+
+  /* ---------- Helpers ---------- */
+  const typeOf=t=>t==='Article'?'read':['Infographic','Poster','Video','Audio','e-Magazine'].includes(t)?'media':'svc';
+  function row(it){
+    const lab={Article:'text',Infographic:'img',Poster:'img',Video:'video',Audio:'audio','e-Magazine':'pdf'}[it.type];
+    const thumb=lab?`<div class="img" style="width:56px;height:56px;flex:none">${lab}</div>`:'';
+    return `<button class="row" type="button" data-go="${it.go}" data-id="${it.id}"${it.c?` data-c="${it.c}"`:''}>${thumb}<div class="t"><b>${esc(it.title)}</b><span>${esc(it.meta)}</span></div><span class="chev">›</span></button>`;
+  }
+  let tt; function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200);}
+
+  /* ---------- Navigation ---------- */
+  const screens=Object.fromEntries($$('.screen').map(s=>[s.dataset.screen,s]));
+  let stack=[];
+  function show(name,opts={}){
+    const s=screens[name]; if(!s) return;
+    Object.values(screens).forEach(x=>x.hidden=x!==s);
+    let t=s.dataset.title;
+    if(name==='topic') t=renderTopic(opts.topic||'Nutrition');
+    if(name==='article') t=renderArticle(opts.id||'weight');
+    if(name==='media') t=renderMedia(opts.id||'plate');
+    if(name==='clinics') renderServices(opts.c||cfilter);
+    if(name==='clinic') renderService(opts.sid||'s1');
+    if(name==='saved') renderSaved();
+    if(name==='search') setTimeout(()=>$('#q').focus(),50);
+    $('#title').textContent=t;
+    const root='root' in s.dataset || name==='onboard';
+    $('#back').style.visibility=root?'hidden':'visible';
+    $('#bell').style.visibility=name==='onboard'?'hidden':'visible';
+    $('#tabbar').hidden='notab' in s.dataset;
+    $$('#tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===s.dataset.tab));
+    s.scrollTop=0;
+  }
+  function go(name,opts={}){
+    const s=screens[name]; if(!s) return;
+    if('root' in s.dataset) stack=[];
+    stack.push({name,opts}); show(name,opts);
+  }
+  function back(){ if(stack.length>1){stack.pop(); const p=stack[stack.length-1]; show(p.name,p.opts);} else go('home'); }
+  document.addEventListener('click',e=>{
+    const g=e.target.closest('[data-go]');
+    if(g){ e.preventDefault(); go(g.dataset.go,{topic:g.dataset.topic,id:g.dataset.id,c:g.dataset.c,sid:g.dataset.sid}); return; }
+    if(e.target.closest('[data-back]')) back();
+  });
+  $('#back').onclick=back;
+  $('#bell').onclick=()=>{ go('alerts'); $('#bell .dot').hidden=true; };
+  $('#restart').onclick=()=>{ stack=[]; go('onboard'); };
+
+  /* ---------- Home & Explore ---------- */
+  $('#popular').innerHTML=['sleep','plate','weight'].map(id=>row(byId[id])).join('');
+  $('#topiclist').innerHTML=Object.keys(TOPICS).map(k=>{
+    const n=ITEMS.filter(i=>i.topics.includes(k)).length;
+    return `<button class="row" type="button" data-go="topic" data-topic="${esc(k)}"><div class="t"><b>${esc(k)}</b><span>${esc(TOPICS[k])}</span></div><span class="badge">${n}</span></button>`;
+  }).join('');
+  function renderTopic(k){
+    let list,title,desc;
+    if(k.startsWith('fmt:')){
+      const f=k.slice(4);
+      list=ITEMS.filter(i=>f==='Infographic'?['Infographic','Poster'].includes(i.type):i.type===f);
+      title={Infographic:'Infographics & posters',Video:'Videos',Audio:'Audio messages','e-Magazine':'e-Magazine'}[f];
+      desc='Each one has a text version for easier reading on a phone.';
+    } else { list=ITEMS.filter(i=>i.topics.includes(k)); title=k; desc=TOPICS[k]||''; }
+    $('#topicdesc').textContent=desc;
+    $('#topicitems').innerHTML=list.length?list.map(row).join(''):'<p class="hint">Nothing here yet.</p>';
+    return title;
+  }
+
+  /* ---------- Search (keyword filtering + empty state) ---------- */
+  let sfilter='all';
+  function score(it,q){
+    const hay=(it.title+' '+it.kw+' '+it.topics.join(' ')+' '+it.type).toLowerCase();
+    const words=q.toLowerCase().split(/\s+/).filter(Boolean);
+    let s=0; for(const w of words){ if(!hay.includes(w)) return 0; s+=it.title.toLowerCase().includes(w)?3:1; }
+    return s;
+  }
+  function renderSearch(){
+    const q=$('#q').value.trim(); $('#qclear').hidden=!q;
+    const out=$('#sresults');
+    if(!q){
+      out.innerHTML=`<p class="label">Recent searches</p><div class="chips">${['dengue','vape','klinik kesihatan'].map(s=>`<button class="chip" type="button" data-s="${s}">${s}</button>`).join('')}</div>
+        <p class="label">Popular searches</p><div class="chips">${['sleep','sugar','haze','healthy plate'].map(s=>`<button class="chip" type="button" data-s="${s}">${s}</button>`).join('')}</div>`;
+      return;
+    }
+    let res=ITEMS.map(i=>[i,score(i,q)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+    const all=res.length;
+    if(sfilter!=='all') res=res.filter(i=>typeOf(i.type)===sfilter);
+    if(!res.length){
+      out.innerHTML=`<div class="empty"><b>No results for "${esc(q)}"${all&&sfilter!=='all'?' in this filter':''}</b><span>Check the spelling, try fewer words, or try one of these:</span>
+        <div class="chips" style="justify-content:center">${['dengue','sleep','sugar','quit smoking'].map(s=>`<button class="chip" type="button" data-s="${s}">${s}</button>`).join('')}</div></div>`;
+      return;
+    }
+    const top=res.find(i=>i.quick);
+    out.innerHTML=(top?`<div class="card hl"><p class="label" style="color:var(--accent)">Quick answer</p><p style="color:var(--ink)">${esc(top.quick)}</p><button class="link" type="button" data-go="${top.go}" data-id="${top.id}">Read more ›</button></div>`:'')+
+      `<p class="label">${res.length} result${res.length>1?'s':''} for "${esc(q)}"</p><div>${res.map(row).join('')}</div>`;
+  }
+  $('#q').addEventListener('input',renderSearch);
+  $('#qclear').onclick=()=>{$('#q').value='';renderSearch();$('#q').focus();};
+  $('#sresults').addEventListener('click',e=>{const c=e.target.closest('[data-s]'); if(c){$('#q').value=c.dataset.s;renderSearch();}});
+  $$('#filters .chip').forEach(c=>c.onclick=()=>{$$('#filters .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');sfilter=c.dataset.f;renderSearch();});
+  renderSearch();
+
+  /* ---------- Article ---------- */
+  const saved=new Set(['dengue','plate']);
+  let cur='weight';
+  function renderArticle(id){
+    const a=ARTICLES[id]||ARTICLES.weight, it=byId[id]||byId.weight; cur=it.id;
+    $('#a-img').textContent=a.img+' · tap to view full size';
+    $('#a-badge').textContent='✓ Bahagian Pendidikan Kesihatan, KKM · Updated '+a.updated;
+    $('#a-title').textContent=it.title;
+    $('#a-points').innerHTML=a.points.map(p=>`<li>${esc(p)}</li>`).join('');
+    const [lbl,tgt]=a.cta, [scr,mid]=tgt.split(':');
+    $('#a-cta').textContent=lbl; $('#a-cta').dataset.go=scr; if(mid) $('#a-cta').dataset.id=mid; else delete $('#a-cta').dataset.id;
+    $('#a-secs').innerHTML=a.secs.map(([q,b])=>`<div class="acc"><button type="button" class="acc-h">${esc(q)} <span>+</span></button><div class="body" hidden>${esc(b)}</div></div>`).join('');
+    $('#a-src').textContent='Info Sihat, Bahagian Pendidikan Kesihatan, Kementerian Kesihatan Malaysia. Last reviewed '+a.updated+'.';
+    $('#a-related').innerHTML=a.related.map(r=>row(byId[r])).join('');
+    setSaveBtn();
+    return 'Article';
+  }
+  $('#a-secs').addEventListener('click',e=>{const h=e.target.closest('.acc-h'); if(!h) return; const b=h.nextElementSibling; b.hidden=!b.hidden; h.querySelector('span').textContent=b.hidden?'+':'−';});
+  $('#a-img').onclick=()=>toast('Opens the original infographic full size (pinch to zoom).');
+  $('#a-srclink').onclick=()=>toast('Opens the original page on infosihat.moh.gov.my');
+  function setSaveBtn(){const on=saved.has(cur);$('#save').textContent=on?'★ Saved':'☆ Save';$('#save').classList.toggle('saved',on);$('#save').classList.toggle('ghost',!on);}
+  $('#save').onclick=()=>{ if(saved.has(cur)){saved.delete(cur);toast('Removed from Saved.');} else {saved.add(cur);toast('Saved. Find it in the Saved tab.');} setSaveBtn(); };
+  $('#share').onclick=()=>toast('Share sheet opens here (WhatsApp, Telegram, copy link)');
+  let playing=false;
+  $('#listen').onclick=()=>{playing=!playing;$('#listen').textContent=playing?'❚❚ Pause':'▶ Listen';$('#listen').classList.toggle('on',playing);toast(playing?'Reading article aloud (simulated)':'Paused');};
+  let big=false;
+  function setBig(v){big=v;document.documentElement.style.setProperty('--fs',big?'17px':'15px');$('#bigtext').classList.toggle('on',big);$('#textsize').classList.toggle('on',big);}
+  $('#textsize').onclick=()=>{setBig(!big);toast(big?'Larger text on':'Normal text');};
+  $('#bigtext').onclick=()=>setBig(!big);
+
+  /* ---------- Media ---------- */
+  let zoom=1, mcur='plate';
+  function renderMedia(id){
+    const it=byId[id]||byId.plate; mcur=it.id;
+    $('#m-type').textContent=it.type; $('#m-title').textContent=it.title;
+    const v=$('#m-visual');
+    if(it.type==='Video'||it.type==='Audio'){
+      v.innerHTML=(it.type==='Video'?'<div class="img" style="height:190px">Video</div>':'')+
+        `<div class="player" style="margin-top:10px"><button class="btn" type="button" id="m-play" style="width:auto;padding:10px 16px">▶ Play</button><div class="bar"><span id="m-bar"></span></div><span class="hint">${it.type==='Video'?'1:00':'2:00'}</span></div>`;
+      $('#m-play').onclick=()=>{const b=$('#m-bar');const on=b.style.width!=='35%';b.style.width=on?'35%':'0';$('#m-play').textContent=on?'❚❚ Pause':'▶ Play';};
+    } else {
+      zoom=1;
+      v.innerHTML=`<div class="zoom"><span class="hint" style="margin-right:auto">Pinch or tap to zoom</span><button type="button" id="zout" aria-label="Zoom out">−</button><button type="button" id="zin" aria-label="Zoom in">+</button></div>
+        <div class="viewer" style="margin-top:8px"><div class="img" id="m-img">${esc(it.type)} · full size</div></div>`;
+      const set=()=>{$('#m-img').style.width=(zoom*100)+'%';$('#m-img').style.height=(zoom*100)+'%';};
+      $('#zin').onclick=()=>{zoom=Math.min(3,zoom+.5);set();}; $('#zout').onclick=()=>{zoom=Math.max(1,zoom-.5);set();};
+    }
+    $('#m-points').innerHTML=(MEDIA[it.id]||[]).map(p=>`<li>${esc(p)}</li>`).join('');
+    $('#m-dl').textContent=saved.has(it.id)?'★ Saved':'☆ Save';
+    return it.type==='e-Magazine'?'e-Magazine':it.type;
+  }
+  $('#m-dl').onclick=()=>{ if(saved.has(mcur)){saved.delete(mcur);toast('Removed from Saved.');} else {saved.add(mcur);toast('Saved. Find it in the Saved tab.');} $('#m-dl').textContent=saved.has(mcur)?'★ Saved':'☆ Save'; };
+  $('#m-share').onclick=()=>toast('Share sheet opens here (WhatsApp, Telegram, copy link)');
+
+  /* ---------- Saved ---------- */
+  function renderSaved(){
+    const l=[...saved].reverse().map(id=>byId[id]).filter(Boolean);
+    $('#savedlist').innerHTML=l.length?l.map(row).join(''):'<div class="empty"><b>Nothing saved yet</b><span>Tap ☆ Save on any article or infographic to keep it here.</span></div>';
+  }
+
+  /* ---------- Services ---------- */
+  let cfilter='kk';
+  const CNAME={kk:'Klinik Kesihatan',quit:'quit smoking services',well:'Wellness Hubs',open:'services open now'};
+  function renderServices(c){
+    cfilter=c; $$('#cfilters .chip').forEach(x=>x.classList.toggle('on',x.dataset.c===c));
+    const l=SERVICES.filter(s=>s.c.includes(c));
+    $('#ccount').textContent=`${l.length} ${CNAME[c]} near you`;
+    $('#clist').innerHTML=l.map(s=>`<button class="row" type="button" data-go="clinic" data-sid="${s.id}"><div class="t"><b>${esc(s.name)}</b><span>${s.dist} · ${esc(s.status)}</span></div><span class="badge ${s.open?'ok':''}">${s.open?'Open':'Closed'}</span></button>`).join('');
+    $('#pins').innerHTML=l.map(s=>`<button class="pin" type="button" aria-label="${esc(s.name)}" data-go="clinic" data-sid="${s.id}" style="left:${s.pos[0]}%;top:${s.pos[1]}%"></button>`).join('');
+  }
+  $$('#cfilters .chip').forEach(c=>c.onclick=()=>{renderServices(c.dataset.c); stack[stack.length-1].opts.c=c.dataset.c;});
+  function renderService(id){
+    const s=svcById[id]; $('#c-name').textContent=s.name; $('#c-status').textContent=s.status;
+    $('#c-status').className='badge '+(s.open?'ok':'warn');
+    $('#c-addr').textContent=s.addr+' · '+s.dist;
+    $('#c-svc').innerHTML=s.svc.map(x=>`<span class="chip">${esc(x)}</span>`).join('');
+    $('#c-hours').textContent=s.hours;
+  }
+  $('#directions').onclick=()=>toast('Opens Google Maps / Waze (simulated)');
+  $('#call').onclick=()=>toast('Opens phone dialer (simulated)');
+
+  /* ---------- Language, toggles ---------- */
+  $$('#langs button').forEach(b=>b.onclick=()=>{
+    $$('#langs button').forEach(x=>{x.classList.remove('on');x.querySelector('span').textContent='○'});
+    b.classList.add('on'); b.querySelector('span').textContent='●';
+    $('#langlabel').textContent=b.textContent.replace(/[○●]/g,'').trim();
+  });
+  $$('.toggle').forEach(t=>{ if(t.id!=='bigtext') t.onclick=()=>t.classList.toggle('on'); });
+  $('#disclaimer').onclick=()=>toast('Information is for health education only and is not a diagnosis.');
+  $('#feedback').onclick=()=>toast('Feedback form opens here.');
+
+  /* ---------- BMI ---------- */
+  function bmi(){
+    const h=parseFloat($('#h').value)/100, w=parseFloat($('#w').value);
+    if(!(h>0.5&&w>10)){toast('Enter height in cm and weight in kg.');return;}
+    const v=w/(h*h); const i=v<18.5?0:v<25?1:v<30?2:3;
+    const cats=['Underweight','Normal','Overweight','Obese'];
+    const adv=['Talk to a dietitian about healthy weight gain.','Great. Keep eating well and staying active.','Read the weight management guide or talk to a dietitian at your Klinik Kesihatan.','Please see a doctor at your nearest clinic for a health check.'];
+    $('#bmival').textContent=v.toFixed(1); $('#bmicat').textContent=cats[i]; $('#bmiadvice').textContent=adv[i];
+    $$('#bmiscale div').forEach((d,k)=>d.classList.toggle('on',k===i));
+  }
+  $('#bmiform').addEventListener('submit',e=>{e.preventDefault();bmi();});
+  bmi();
+
+  /* ---------- Risk ---------- */
+  $$('#riskopts button').forEach(b=>b.onclick=()=>{$$('#riskopts button').forEach(x=>{x.classList.remove('on');x.querySelector('span').textContent='○'});b.classList.add('on');b.querySelector('span').textContent='●';});
+  $('#risknext').onclick=()=>toast('Next question (prototype shows one sample question)');
+
+  /* ---------- Ask ---------- */
+  $('#askform').addEventListener('submit',e=>{e.preventDefault();
+    const m=$('#msg').value.trim(); if(!m){toast('Type your question first.');return;}
+    const r=document.createElement('div');r.className='row';r.style.cursor='default';
+    r.innerHTML='<div class="t"><b></b><span>Sent just now · reply in 3 working days</span></div><span class="badge warn">Waiting</span>';
+    r.querySelector('b').textContent=m.length>60?m.slice(0,60)+'…':m;
+    $('#myq').prepend(r); $('#msg').value=''; toast('Question sent. We will notify you when it is answered.');
+  });
+
+  go('onboard');
+})();
+</script>
+
+</body></html>
